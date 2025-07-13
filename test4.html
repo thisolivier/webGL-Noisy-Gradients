@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thresholded Blue-Noise POC</title>
+  <style>
+    html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#fff; }
+    canvas { display:block; width:100%; height:100%; }
+  </style>
+</head>
+<body>
+  <canvas id="glcanvas"></canvas>
+  <script>
+    // — shader helpers —
+    function compileShader(gl, type, src) {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(s));
+        gl.deleteShader(s);
+        return null;
+      }
+      return s;
+    }
+    function createProgram(gl, vs, fs) {
+      const v = compileShader(gl, gl.VERTEX_SHADER, vs);
+      const f = compileShader(gl, gl.FRAGMENT_SHADER, fs);
+      const p = gl.createProgram();
+      gl.attachShader(p, v);
+      gl.attachShader(p, f);
+      gl.linkProgram(p);
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+        console.error(gl.getProgramInfoLog(p));
+        return null;
+      }
+      return p;
+    }
+
+    const vsSource = `
+      attribute vec2 a_position;
+      varying vec2 v_uv;
+      void main() {
+        v_uv = a_position * 0.5 + 0.5;
+        gl_Position = vec4(a_position,0,1);
+      }
+    `;
+
+    const fsSource = `
+      precision highp float;
+      varying vec2 v_uv;
+      uniform vec2 u_resolution;
+      uniform float u_time;
+      uniform sampler2D u_blueNoise;
+
+      // config
+      const float cellPx   = 5.0;                // grid cell size
+      const float dotR    = 0.5;                 // dot radius (in cell-units, 0..0.5)
+      const float rMax    = 0.4;                 // gradient radius in UV
+      const vec3  col1    = vec3(0.2,0.4,0.9);   // blue
+      const vec3  col2    = vec3(0.9,0.3,0.5);   // pink
+
+      // basic screen-blend
+      vec3 screenBlend(vec3 a, vec3 b){
+        return 1.0 - (1.0 - a)*(1.0 - b);
+      }
+
+      vec3 overlayBlend(vec3 base, vec3 blend) {
+        vec3 result;
+        for (int i = 0; i < 3; i++) {
+          float b = base[i];
+          float f = blend[i];
+          result[i] = (b < 0.5)
+            ? (2.0 * b * f)
+            : (1.0 - 2.0 * (1.0 - b) * (1.0 - f));
+        }
+        return result;
+      }
+
+      void main(){
+        // 1) compute two moving centers in UV
+        vec2 base1 = vec2(0.3,0.4);
+        vec2 base2 = vec2(0.7,0.6);
+        vec2 c1 = base1 + 0.2 * vec2(sin(u_time), cos(u_time));
+        vec2 c2 = base2; // static
+
+        // 2) grid coords
+        vec2 gridUV  = v_uv * u_resolution / cellPx;
+        vec2 cellID  = floor(gridUV);
+        vec2 localUV = fract(gridUV) - 0.5;
+
+        // 3) lookup blue-noise value per cell
+        //    tile the 64×64 noise texture
+        vec2 noiseUV = fract(cellID / 64.0) + (0.5/64.0);
+        float rnd    = texture2D(u_blueNoise, noiseUV).r;
+
+        // 4) gradient‐based density
+        vec2 cellCenterUV = (cellID + 0.5) * cellPx / u_resolution;
+        float d1  = length(cellCenterUV - c1) / rMax;
+        float d2  = length(cellCenterUV - c2) / rMax;
+        float p1  = clamp(1.0 - d1, 0.0, 1.0);
+        float p2  = clamp(1.0 - d2, 0.0, 1.0);
+
+        // 5) decide if this cell has a dot for each layer
+        float have1 = step(rnd, p1);
+        float have2 = step(rnd, p2);
+
+        // 6) draw fixed-radius circle if present
+        float dist = length(localUV);
+        float m1   = have1 * step(dist, dotR);
+        float m2   = have2 * step(dist, dotR);
+
+        // 7) composite each dot layer onto white separately
+        vec3 color = vec3(1.0);
+        vec3 dots1 = col1 * m1;
+        vec3 dots2 = col2 * m2;
+        vec3 accum = screenBlend(vec3(0.0), dots1);
+        accum = screenBlend(accum, dots2);
+        float mask = step(0.0, length(accum));  
+        vec3 finalCol = mix(vec3(1.0), accum, mask);
+
+        gl_FragColor = vec4(finalCol, 1.0);
+      }
+    `;
+
+    // — setup —
+    const canvas = document.getElementById('glcanvas');
+    const gl     = canvas.getContext('webgl');
+    if(!gl){ alert("WebGL not supported"); throw ""; }
+
+    // resize to full window
+    function resize(){
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      gl.viewport(0,0,canvas.width,canvas.height);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // load blue-noise texture
+    const noiseImg = new Image();
+    noiseImg.crossOrigin = "";
+    noiseImg.src = "bn_1.png";
+    noiseImg.onload = () => {
+      // create GL texture
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,gl.LUMINANCE,gl.UNSIGNED_BYTE,noiseImg);
+      gl.generateMipmap(gl.TEXTURE_2D);
+
+      // compile & link
+      const prog = createProgram(gl, vsSource, fsSource);
+      gl.useProgram(prog);
+
+      // look up locations
+      const posLoc = gl.getAttribLocation(prog,"a_position");
+      const resLoc = gl.getUniformLocation(prog,"u_resolution");
+      const timeLoc= gl.getUniformLocation(prog,"u_time");
+      const noiseLoc = gl.getUniformLocation(prog,"u_blueNoise");
+
+      // set up quad
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([
+        -1,-1,  1,-1,  -1,1,
+         1,-1,  1,1,   -1,1
+      ]),gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(posLoc);
+      gl.vertexAttribPointer(posLoc,2,gl.FLOAT,false,0,0);
+
+      // bind noise texture to unit 0
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.uniform1i(noiseLoc, 0);
+
+      // render loop
+      let start = performance.now();
+      (function render(){
+        let t = (performance.now() - start)*0.001;
+        gl.uniform2f(resLoc, canvas.width, canvas.height);
+        gl.uniform1f(timeLoc, t);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        requestAnimationFrame(render);
+      })();
+    };
+  </script>
+</body>
+</html>

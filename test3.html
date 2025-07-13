@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scroll-Reactive Shader POC</title>
+  <style>
+    /* Make the page scrollable and layer the canvas on top */
+    body, html {
+      margin: 0; padding: 0;
+      height: 800vh;        /* twice viewport height so you can scroll */
+      overflow-x: hidden;
+    }
+    canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: block;
+      pointer-events: none; /* allow scrolling “through” the canvas */
+    }
+  </style>
+</head>
+<body>
+  <canvas id="glcanvas"></canvas>
+  <script>
+    // —— Shader compilation helpers (same as before) ——
+    function compileShader(gl, type, src) {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(s));
+        return null;
+      }
+      return s;
+    }
+    function createProgram(gl, vsSrc, fsSrc) {
+      const vs = compileShader(gl, gl.VERTEX_SHADER, vsSrc);
+      const fs = compileShader(gl, gl.FRAGMENT_SHADER, fsSrc);
+      const p  = gl.createProgram();
+      gl.attachShader(p, vs);
+      gl.attachShader(p, fs);
+      gl.linkProgram(p);
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+        console.error(gl.getProgramInfoLog(p));
+        return null;
+      }
+      return p;
+    }
+
+    // —— GLSL sources, now with a scroll uniform —— 
+    const vsSource = `
+      attribute vec2 a_position;
+      varying   vec2 v_uv;
+      void main() {
+        v_uv = a_position * 0.5 + 0.5;
+        gl_Position = vec4(a_position, 0.0, 1.0);
+      }
+    `;
+    const fsSource = `
+      precision highp float;
+      varying vec2 v_uv;
+      uniform float u_time;
+      uniform float u_scroll;   // 0.0 at top, up to 1.0 at bottom
+
+      float noise(vec2 p){
+        return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123);
+      }
+
+      void main() {
+        // shift gradient mix by scroll
+        vec3 topCol    = vec3(1.0, 0.7, 0.8);
+        vec3 bottomCol = vec3(0.6, 0.8, 1.0);
+        float y = clamp(v_uv.y + u_scroll * 1.5, 0.0, 2.0);
+        vec3 col = mix(topCol, bottomCol, y);
+
+        // noise amplitude grows as you scroll
+        float n = noise(v_uv * 2.0 + u_time * 0.000001);
+        float amp = 0.02 + u_scroll * 0.05;
+        vec2 uv2 = v_uv + (n - 0.5) * amp;
+
+        // blend noisy highlight stronger as you scroll
+        float highlight = mix(0.2, 0.8, u_scroll);
+        vec3 finalCol = mix(col, mix(vec3(1.0), col, n), highlight);
+
+        gl_FragColor = vec4(finalCol, 1.0);
+      }
+    `;
+
+    // —— Setup WebGL ——
+    const canvas = document.getElementById('glcanvas');
+    const gl = canvas.getContext('webgl');
+    if (!gl) {
+      alert('WebGL not supported');
+      throw 'WebGL not supported';
+    }
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const program = createProgram(gl, vsSource, fsSource);
+    gl.useProgram(program);
+
+    // get attribute/uniform locations
+    const posLoc    = gl.getAttribLocation(program, 'a_position');
+    const timeLoc   = gl.getUniformLocation(program, 'u_time');
+    const scrollLoc = gl.getUniformLocation(program, 'u_scroll');
+
+    // fullscreen quad
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -1,-1,  1,-1,  -1,1,
+       1,-1,  1,1,   -1,1
+    ]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+    // track scroll fraction
+    function getScrollFraction() {
+      const maxScroll = document.body.scrollHeight - window.innerHeight;
+      return maxScroll > 0
+        ? window.scrollY / maxScroll
+        : 0;
+    }
+
+    // —— Animation Loop ——
+    const start = performance.now();
+    function render() {
+      const t = (performance.now() - start) * 0.001;
+      gl.uniform1f(timeLoc, t);
+      gl.uniform1f(scrollLoc, getScrollFraction());
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      requestAnimationFrame(render);
+    }
+    render();
+  </script>
+</body>
+</html>

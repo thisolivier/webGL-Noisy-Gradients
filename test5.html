@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thresholded Blue-Noise Stipple POC</title>
+  <style>
+    html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#fff; }
+    canvas { display:block; width:100%; height:100%; }
+  </style>
+</head>
+<body>
+  <canvas id="glcanvas"></canvas>
+  <script>
+    // ─── CONFIGURE YOUR TWO COLORS HERE ───
+    // Each as [R, G, B], values 0.0–1.0
+    const COLOR1 = [0.2, 0.4, 0.9];  // e.g. blue
+    const COLOR2 = [0.9, 0.3, 0.5];  // e.g. pink
+
+    // ─── SHADER HELPERS ───
+    function compileShader(gl, type, src) {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(s));
+        return null;
+      }
+      return s;
+    }
+    function createProgram(gl, vsSrc, fsSrc) {
+      const v = compileShader(gl, gl.VERTEX_SHADER, vsSrc);
+      const f = compileShader(gl, gl.FRAGMENT_SHADER, fsSrc);
+      const p = gl.createProgram();
+      gl.attachShader(p, v);
+      gl.attachShader(p, f);
+      gl.linkProgram(p);
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+        console.error(gl.getProgramInfoLog(p));
+        return null;
+      }
+      return p;
+    }
+
+    // ─── VERTEX SHADER ───
+    const vsSource = `
+      attribute vec2 a_position;
+      varying   vec2 v_uv;
+      void main() {
+        v_uv = a_position * 0.5 + 0.5;
+        gl_Position = vec4(a_position, 0, 1);
+      }
+    `;
+
+    // ─── FRAGMENT SHADER (Thresholded Blue-Noise) ───
+    const fsSource = `
+      precision highp float;
+      varying vec2 v_uv;
+      uniform vec2  u_resolution;
+      uniform float u_time;
+      uniform sampler2D u_blueNoise;
+      uniform vec3  u_color1;
+      uniform vec3  u_color2;
+
+      // noise & stipple params (unchanged)
+      const float cellPx    = 20.0;
+      const float dotRadius = 0.2;
+      const float rMax      = 0.5;
+
+      // multiply blend is just component-wise multiply
+      vec3 multiplyBlend(vec3 base, vec3 blend) {
+        return base * blend;
+      }
+
+      // overlay blend: if base<0.5: 2*base*blend, else: 1 - 2*(1-base)*(1-blend)
+      vec3 overlayBlend(vec3 base, vec3 blend) {
+        // step(base, 0.5) is 1.0 when base≥0.5, 0.0 otherwise
+        return mix(
+          2.0 * base * blend,
+          1.0 - 2.0 * (1.0 - base) * (1.0 - blend),
+          step(0.5, base)
+        );
+      }
+
+      void main(){
+        // 1) two moving circles of density
+        vec2 c1 = vec2(0.3,0.4) + 0.2*vec2(sin(u_time), cos(u_time));
+        vec2 c2 = vec2(0.7,0.6);
+        float p1 = clamp(1.0 - length(v_uv - c1)/rMax, 0.0, 1.0);
+        float p2 = clamp(1.0 - length(v_uv - c2)/rMax, 0.0, 1.0);
+
+        // 2) blue-noise cell lookup (unchanged)
+        vec2 gridUV  = v_uv * u_resolution / cellPx;
+        vec2 cellID  = floor(gridUV);
+        vec2 localUV = fract(gridUV) - 0.5;
+        vec2 noiseUV = fract(cellID/64.0) + 0.5/64.0;
+        float rnd    = texture2D(u_blueNoise, noiseUV).r;
+
+        // 3) threshold into dot masks
+        float have1 = step(rnd, p1*0.3);
+        float have2 = step(rnd, p2*0.3);
+
+        // 4) circle shape
+        float dist = length(localUV);
+        float m1   = have1 * step(dist, dotRadius);
+        float m2   = have2 * step(dist, dotRadius);
+
+        // 5) mask each colour, then composite
+        // mix between white and your colour based on mask
+        vec3 b1 = mix(vec3(1.0), u_color1, m1);
+        vec3 b2 = mix(vec3(1.0), u_color2, m2);
+
+        // --- uncomment one of these two: ---
+
+        //  a) multiply effect:
+        vec3 col = multiplyBlend(b1, b2);
+
+        //  b) overlay effect:
+        //vec3 col = overlayBlend(b1, b2);
+
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `;
+
+    // ─── SETUP WEBGL ───
+    const canvas = document.getElementById('glcanvas');
+    const gl     = canvas.getContext('webgl');
+    if (!gl) {
+      alert('WebGL not supported');
+      throw 'WebGL not supported';
+    }
+
+    // resize & viewport
+    function resize(){
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // load blue-noise texture
+    const noiseImg = new Image();
+    noiseImg.crossOrigin = '';
+    noiseImg.src = 'bn_1.png';
+    noiseImg.onload = () => {
+      // create and bind texture
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.UNSIGNED_BYTE, noiseImg);
+      gl.generateMipmap(gl.TEXTURE_2D);
+
+      // compile shaders & program
+      const prog = createProgram(gl, vsSource, fsSource);
+      gl.useProgram(prog);
+
+      // look up attributes & uniforms
+      const posLoc    = gl.getAttribLocation(prog, 'a_position');
+      const resLoc    = gl.getUniformLocation(prog, 'u_resolution');
+      const timeLoc   = gl.getUniformLocation(prog, 'u_time');
+      const noiseLoc  = gl.getUniformLocation(prog, 'u_blueNoise');
+      const color1Loc = gl.getUniformLocation(prog, 'u_color1');
+      const color2Loc = gl.getUniformLocation(prog, 'u_color2');
+
+      // fullscreen quad
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1,-1,  1,-1,  -1,1,
+         1,-1,  1,1,   -1,1
+      ]), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(posLoc);
+      gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+      // bind blue-noise to texture unit 0
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.uniform1i(noiseLoc, 0);
+
+      // set static color uniforms
+      gl.uniform3fv(color1Loc, COLOR1);
+      gl.uniform3fv(color2Loc, COLOR2);
+
+      // render loop
+      const start = performance.now();
+      function render() {
+        const t = (performance.now() - start) * 0.001;
+        gl.uniform2f(resLoc, canvas.width, canvas.height);
+        gl.uniform1f(timeLoc, t);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        requestAnimationFrame(render);
+      }
+      render();
+    };
+  </script>
+</body>
+</html>
