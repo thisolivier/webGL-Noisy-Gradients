@@ -14,20 +14,23 @@ uniform vec2  u_center2;
 uniform float u_sigma;
 uniform sampler2D u_noise1;
 uniform sampler2D u_noise2;
-
 // new uniforms for masking
 uniform sampler2D u_mask;
-uniform vec2      u_maskOffset;  // how much to scroll the mask
+uniform float      u_maskOffset;  // how much to scroll the mask
+uniform float      u_maskStretch; // how much to stretch the mask
 
 out vec4 fragColor;
 
-const float POINT_SIZE = 3.0;
+const float POINT_SIZE = 1.0;
 const float NOISE_TILE = 512.0;
 
 void main() {
   vec2 uv       = gl_FragCoord.xy;
-  vec2 normUV   = uv / u_resolution;
-  vec2 maskUV   = normUV + u_maskOffset;  
+  vec2 normUV   = uv / u_resolution;  // [0..1] across the viewport
+  
+  // Stretch mask stretch + offset only in V:
+  float v = normUV.y * u_maskStretch + u_maskOffset;
+  vec2 maskUV = vec2(normUV.x, v);
   float maskVal = texture(u_mask, maskUV).r;  // assume mask stored in red
 
   // (1) compute probabilities exactly as before
