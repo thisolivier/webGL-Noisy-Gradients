@@ -25,7 +25,7 @@ out vec4 fragColor;
 const float POINT_SIZE = 1.0;
 const float NOISE_TILE = 512.0;
 const float FADE_START = 2.0;
-const float FADE_END   = 2.5;
+const float FADE_END   = 3.5;
 
 void main() {
   vec2 uv     = gl_FragCoord.xy;
@@ -62,8 +62,8 @@ void main() {
     anyFade = max(anyFade, fade);
 
     // 4) dot-layer tests & colour multiply
-    if (n1 < prob) col *= (colour * fade);
-    if (n2 < prob) col *= (colour * fade);
+    if ((n1 < prob) && (dNorm < FADE_END)) col *= colour;
+    if ((n2 < prob) && (dNorm < FADE_END)) col *= colour;
   }
 
   col = mix(vec3(1.0), col, maskVal);
