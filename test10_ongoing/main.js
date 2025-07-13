@@ -58,6 +58,7 @@ export default async function main() {
 
     const scrollY = window.scrollY || window.pageYOffset;
     // tune these velocities as you like:
+    const maskSpeed = 0.7;
     const speed1 = 0.6;  // pink moves faster
     const speed2 = 0.3;  // yellow slower
 
@@ -76,6 +77,7 @@ export default async function main() {
     gl.uniform2f(uRes, canvas.width, canvas.height);
     gl.uniform2f(uC1, x1, cy1);
     gl.uniform2f(uC2, x2, cy2);
+    gl.uniform2f(uMaskOfs, 0, scrollY);
     gl.uniform1f(uSig, Math.min(canvas.width, canvas.height) * 0.25);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
