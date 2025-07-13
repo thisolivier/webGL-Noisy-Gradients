@@ -1,6 +1,5 @@
 import { 
-  vertexSource as vsSource, 
-  fragmentSource as fsSource 
+  loadShaderSource
 } from "./shaders.js";
 
 import { 
@@ -16,7 +15,9 @@ export default async function main() {
   if (!gl) { alert('WebGL2 required'); return; }
 
   // compile and link the program
-  const prog = createProgram(gl, vsSource, fsSource);
+  const vertexSource = await loadShaderSource('/shaders/vertex.glsl')
+  const fragmentSource = await loadShaderSource('/shaders/fragment.glsl')
+  const prog = createProgram(gl, vertexSource, fragmentSource);
   gl.useProgram(prog);
 
   // look up attrib/uniform locations
