@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Scroll-Driven Gradients</title>
+  <style>
+    /* allow page scrolling */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 400vh; /* so you can scroll */
+      background: #fff;
+    }
+    /* keep the GL canvas fixed behind */
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="glcanvas"></canvas>
+  <script type="module">
+    import main from "./main.js"
+  </script>
+</body>
+</html>
