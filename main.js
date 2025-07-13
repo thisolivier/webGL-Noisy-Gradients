@@ -16,6 +16,10 @@ export default async function main() {
   const gl = canvas.getContext('webgl2');
   if (!gl) { alert('WebGL2 required'); return; }
 
+  // once, after you get your gl context:
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
   // compile and link the program
   const vertexSource = await loadShaderSource('/shaders/vertex.glsl')
   const fragmentSource = await loadShaderSource('/shaders/fragment.glsl')
@@ -37,6 +41,7 @@ export default async function main() {
   const uCArray      = gl.getUniformLocation(prog, 'u_centers');
   const uRArray      = gl.getUniformLocation(prog, 'u_radii');
   const uColourArray = gl.getUniformLocation(prog, 'u_colours');
+  const uBlendArray  = gl.getUniformLocation(prog, 'u_blendMode');
 
   // set up quad buffer
   initFullScreenQuad(gl);
@@ -78,9 +83,10 @@ export default async function main() {
 
     // ── DATA-DRIVEN GRADIENTS SETUP ──
     // 1) Gather into flat arrays:
-    const centres = [];
-    const radii   = [];
-    const colours = [];
+    const centres   = [];
+    const radii     = [];
+    const colours   = [];
+    const blendModes = [];
     for (let g of gradients) {
       // screen-space X
       const x = canvas.width * g.xNorm;
@@ -89,16 +95,26 @@ export default async function main() {
       centres.push(x, y);
       radii.push(g.radius * canvas.width);
       colours.push(...g.colour);
+      if (g.blendMode == "linDodge") {
+        blendModes.push(0)
+        console.log("LIN")
+      } else if (g.blendMode == "colDodge") {
+        blendModes.push(0)
+        console.log("COL")
+      } else {
+        blendModes.push(2)
+        console.log("OTHER")
+      }
     }
     // 2) update gradient inputs
     gl.uniform1i(uNumGrad, gradients.length);
     gl.uniform2fv(uCArray, centres);
     gl.uniform1fv(uRArray, radii);
     gl.uniform3fv(uColourArray, colours);
+    gl.uniform1iv(uBlendArray, blendModes)
 
     // update uniforms
     gl.uniform2f(uRes, canvas.width, canvas.height);
-    gl.uniform2f(uMaskOfs, 0, scrollY);
     gl.uniform1f(uSig, Math.min(canvas.width, canvas.height) * 0.25);
     gl.uniform1f(uMaskStretch,  maskStretch);
     gl.uniform1f(uMaskOfs, offset);
