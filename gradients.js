@@ -1,15 +1,15 @@
 export const gradients = [
   {
     xNorm: 0.01,
-    yNorm: 0.2,
+    yNorm: 0.1,
     speed: 0.3,
-    radius: 0.2,
+    radius: 0.3,
     colour: [0.98, 0.42, 1.0], // pink in GLSL Vec3 format
   },
   {
     xNorm: 0,
-    yNorm: 0,
-    speed: 0.3,
+    yNorm: -0.1,
+    speed: 0.4,
     radius: 0.12,
     colour: [0.624, 0.220, 1.0], // pink in GLSL Vec3 format
   },
@@ -28,7 +28,7 @@ export const gradients = [
     colour: [0.788, 1.0, 0.992] // light blue
   },
     {
-    xNorm: 0.2,
+    xNorm: 0.4,
     yNorm: 0.8,
     speed: 0.6,
     radius: 0.2,
