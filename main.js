@@ -11,8 +11,8 @@ import {
 import { gradients } from "./gradients.js";
 
 // ----- Main -----
-export default async function main() {
-  const canvas = document.getElementById('glcanvas');
+export default async function runShaderOnCanvas(canvasName) {
+  const canvas = document.getElementById(canvasName);
   const gl = canvas.getContext('webgl2');
   if (!gl) { alert('WebGL2 required'); return; }
 
@@ -110,4 +110,5 @@ export default async function main() {
   window.addEventListener('resize', draw);
   draw();
 }
-main();
+runShaderOnCanvas('glcanvas');
+runShaderOnCanvas('glcanvasBlurred');
