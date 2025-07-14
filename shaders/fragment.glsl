@@ -63,7 +63,7 @@ void main() {
   offsets[4] = vec2( 0.0,-1.0) * blurScale;
 
   // ─── Per-gradient loop ─────────────────────────────────
-  for (int i = 0; i < 1; i++) {
+  for (int i = 0; i < 16; i++) {
     vec2 center = u_centers[i];
     float radius = u_radii[i];
     vec3 colour = u_colours[i];
@@ -73,11 +73,7 @@ void main() {
       // 1) Locate the dot cell being tested
       vec2 offsetUV = uv + offsets[j] * POINT_SIZE;
       vec2 cell = floor(offsetUV / POINT_SIZE) * POINT_SIZE + 0.5 * POINT_SIZE;
-      vec2 cellUV = cell / u_resolution;
-
-      // 2) Check if the cell is inside this gradient’s circular region
-      vec2 centerUV = vec2(center.x, center.y / (u_resolution.y / u_resolution.x));
-      vec2 delta = cellUV - centerUV;
+      vec2 delta = cell - center;
       float dist2 = dot(delta, delta);
 
       // discard dots too far from gradient
