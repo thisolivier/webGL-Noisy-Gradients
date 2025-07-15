@@ -29,10 +29,6 @@ export default async function runShaderOnCanvas(canvasName) {
   const uSig    = gl.getUniformLocation(prog, 'u_sigma');
   const uN1     = gl.getUniformLocation(prog, 'u_noise1');
   const uN2     = gl.getUniformLocation(prog, 'u_noise2');
-  // related to mask
-  const uMaskLoc     = gl.getUniformLocation(prog, 'u_mask');
-  const uMaskStretch = gl.getUniformLocation(prog, 'u_maskStretch')
-  const uMaskOfs     = gl.getUniformLocation(prog, 'u_maskOffset');
   // related to gradients
   const uNumGrad     = gl.getUniformLocation(prog, 'u_numGradients');
   const uCArray      = gl.getUniformLocation(prog, 'u_centers');
@@ -48,12 +44,10 @@ export default async function runShaderOnCanvas(canvasName) {
   await Promise.all([
     loadTextureAsync(gl, '../images/bn_4.png', 0),
     loadTextureAsync(gl, '../images/bn_5.png', 1),
-    loadTextureAsync(gl, '../images/mask.png', 2),
   ]);
   // tell the shader which unit each sampler uses
   gl.uniform1i(uN1, 0);
   gl.uniform1i(uN2, 1);
-  gl.uniform1i(uMaskLoc, 2);
 
   // resize & draw whenever needed
   function resize() {
@@ -69,13 +63,6 @@ export default async function runShaderOnCanvas(canvasName) {
     const bodyHeight  = document.body.scrollHeight;
     const viewHeight  = window.innerHeight;
     const scrollRange = bodyHeight - viewHeight;
-    // Mask computation
-    const maskSpeed = 0.5; 
-    // denom = bottom of mask hits bottom of view at full scroll
-    const denom = viewHeight + scrollRange * maskSpeed;
-    // how much to squash/stretch the mask vertically
-    const maskStretch  = viewHeight / denom;
-    const offset = (scrollY * maskSpeed) / denom; // Change to (scrollRange - scrollY) to flip mask direction
 
     // ── DATA-DRIVEN GRADIENTS SETUP ──
     // 1) Gather into flat arrays:
@@ -105,10 +92,7 @@ export default async function runShaderOnCanvas(canvasName) {
 
     // update uniforms
     gl.uniform2f(uRes, canvas.width, canvas.height);
-    gl.uniform2f(uMaskOfs, 0, scrollY);
     gl.uniform1f(uSig, Math.min(canvas.width, canvas.height) * 0.25);
-    gl.uniform1f(uMaskStretch,  maskStretch);
-    gl.uniform1f(uMaskOfs, offset);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }

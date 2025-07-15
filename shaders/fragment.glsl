@@ -8,10 +8,6 @@ uniform vec2  u_resolution;
 uniform float u_sigma;
 uniform sampler2D u_noise1;
 uniform sampler2D u_noise2;
-// uniforms for masking
-uniform sampler2D u_mask;
-uniform float      u_maskOffset;  // how much to scroll the mask
-uniform float      u_maskStretch; // how much to stretch the mask
 // for gradient configuations
 uniform int    u_numGradients;
 uniform vec2   u_centers[16];
@@ -29,10 +25,6 @@ const float FADE_CUTOFF   = 3.5;
 void main() {
   vec2 uv     = gl_FragCoord.xy;
   vec2 normUV = uv / u_resolution;
-
-  // float v = normUV.y * u_maskStretch + u_maskOffset;
-  // vec2 maskUV = vec2(normUV.x, v);
-  // float maskVal = texture(u_mask, maskUV).r;
 
   vec2 cell    = floor(uv / POINT_SIZE) * POINT_SIZE + 0.5 * POINT_SIZE;
   vec2 noiseUV = cell / NOISE_TILE;
@@ -62,6 +54,5 @@ void main() {
     if (n2 < prob) col *= colour;
   }
 
-  // col = mix(vec3(1.0), col, maskVal);
   fragColor = vec4(col, 1.0);
 }
