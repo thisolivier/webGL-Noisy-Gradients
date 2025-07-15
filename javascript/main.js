@@ -3,6 +3,7 @@ import {
 } from "./shaders.js";
 
 import { 
+  normaliser8Bit,
   createProgram, 
   initFullScreenQuad, 
   loadTextureAsync 
@@ -17,8 +18,8 @@ export default async function runShaderOnCanvas(canvasName) {
   if (!gl) { alert('WebGL2 required'); return; }
 
   // compile and link the program
-  const vertexSource = await loadShaderSource('/shaders/vertex.glsl')
-  const fragmentSource = await loadShaderSource('/shaders/fragment.glsl')
+  const vertexSource = await loadShaderSource('../shaders/vertex.glsl')
+  const fragmentSource = await loadShaderSource('../shaders/fragment.glsl')
   const prog = createProgram(gl, vertexSource, fragmentSource);
   gl.useProgram(prog);
 
@@ -45,9 +46,9 @@ export default async function runShaderOnCanvas(canvasName) {
 
   // load both noise textures
   await Promise.all([
-    loadTextureAsync(gl, 'bn_4.png', 0),
-    loadTextureAsync(gl, 'bn_5.png', 1),
-    loadTextureAsync(gl, 'mask.png', 2),
+    loadTextureAsync(gl, '../images/bn_4.png', 0),
+    loadTextureAsync(gl, '../images/bn_5.png', 1),
+    loadTextureAsync(gl, '../images/mask.png', 2),
   ]);
   // tell the shader which unit each sampler uses
   gl.uniform1i(uN1, 0);
@@ -81,14 +82,20 @@ export default async function runShaderOnCanvas(canvasName) {
     const centres = [];
     const radii   = [];
     const colours = [];
+    // Note: yNorm and radius are also scaled using canvas.width
+    // so that all positioning is relative to screen width for consistency.
+    // This creates a square-based coordinate system even in tall viewports.
     for (let g of gradients) {
       // screen-space X
       const x = canvas.width * g.xNorm;
       // screen-space Y
-      const y = (g.yNorm * canvas.width * -1) + scrollY * g.speed;
+      // `(g.yNorm * canvas.width)` converts our fractional (based on width) vertical pos into pixel size
+      // `+ canvas.height` pushes it to the TOP of the canvas (0,0 is in the bottom left)
+      // `scrollY * g.speed` gives out scrolling parralax behaviour
+      const y = (g.yNorm * canvas.width * -1) + canvas.height + scrollY * g.speed;
       centres.push(x, y);
       radii.push(g.radius * canvas.width);
-      colours.push(...g.colour);
+      colours.push(...(normaliser8Bit(g.colour)));
     }
     // 2) update gradient inputs
     gl.uniform1i(uNumGrad, gradients.length);
