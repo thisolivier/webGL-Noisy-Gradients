@@ -49,4 +49,4 @@ export async function setupCanvases() {
   ]);
 }
 
-setupCanvases();
+document.addEventListener("DOMContentLoaded", (e) => setupCanvases());
