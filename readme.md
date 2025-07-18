@@ -17,7 +17,7 @@ You can then have a look at `gradients.js` and reconfigure the blobs as you like
 
 You configure your sprays of colour in `gradients.js`. The vertical positioning, and width of the blob, is proprtional to the page width. I hope to implement looping soon, but for now, on a long page, you'll need to make a long list of gradients.
 
-You can change the border effect replacing the mask.png file (white is transparent). Also, playing about with `const float POINT_SIZE` in `fragment.glsl` can be entertaining. 
+You can change the border effect replacing the mask.png file (white is transparent). Also, playing about with `const float POINT_SIZE` in `fragment.glsl` can be entertaining.
 
 ## Features
 
@@ -42,3 +42,33 @@ You can change the border effect replacing the mask.png file (white is transpare
   - A centre is **removed** once its screen-space Y drifts more than **3× its radius** above the viewport.  
   - It is **re-spawned** when its Y moves more than **3× its radius** below the viewport.  
   - Re-spawns are triggered by bumping `yNorm += 1.0`, preserving colour, speed and radius.
+
+## Project Structure
+
+The repository contains a few small files that cooperate to display the moving
+gradients:
+
+- **`index.html`** – minimal page markup and CSS. It loads
+  `javascript/main.js` which in turn starts the effect.
+- **`javascript/main.js`** – waits for the document to load and then calls
+  `initBackgroundGradients()`.
+- **`javascript/initBackgroundGradients.js`** – creates the canvas elements used
+  for rendering (if they do not already exist) and launches the shaders on each
+  canvas via `runShaderOnCanvas()`.
+- **`javascript/runShaderOnCanvas.js`** – core WebGL logic. It loads the shader
+  code from the `shaders/` folder, sets up textures from `images/`, reads the
+  gradient definitions from `gradients.js`, and schedules redraws on scroll or
+  resize.
+- **`javascript/gradients.js`** – holds the array of gradient centres and their
+  colours, radii and movement speeds.
+- **`javascript/shaders.js`** – small helper for fetching the GLSL source
+  strings for the shaders.
+- **`javascript/utilities.js`** – assorted WebGL helpers such as shader
+  compilation, program creation, full screen quad setup and texture loading.
+- **`shaders/vertex.glsl`** and **`shaders/fragment.glsl`** – the GLSL programs
+  executed on the GPU to draw the spray‑paint effect.
+- **`images/`** – contains the noise textures used by the shaders.
+
+Together these files create the scrolling spray‑paint gradients by configuring
+the shaders with data from `gradients.js` and redrawing the canvases as the
+page scrolls.
