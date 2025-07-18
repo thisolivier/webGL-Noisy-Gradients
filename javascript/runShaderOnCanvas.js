@@ -1,8 +1,5 @@
-import {
-  vertexSource,
-  fragmentSource,
-  loadShaderSource
-} from "./shaders.js";
+import vertexSource from "../shaders/vertex.glsl";
+import fragmentSource from "../shaders/fragment.glsl";
 
 import {
   normaliser8Bit,
@@ -20,8 +17,8 @@ export async function runShaderOnCanvas(canvasName) {
 
   // compile and link the program. When bundled, vertexSource and
   // fragmentSource are inlined; otherwise fall back to fetching them.
-  const vsSrc = vertexSource || await loadShaderSource('../shaders/vertex.glsl');
-  const fsSrc = fragmentSource || await loadShaderSource('../shaders/fragment.glsl');
+  const vsSrc = vertexSource;
+  const fsSrc = fragmentSource;
   const prog = createProgram(gl, vsSrc, fsSrc);
   gl.useProgram(prog);
 

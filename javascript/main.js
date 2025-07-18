@@ -48,5 +48,3 @@ export async function setupCanvases() {
     runShaderOnCanvas('glcanvasBlurred')
   ]);
 }
-
-document.addEventListener("DOMContentLoaded", setupCanvases);
