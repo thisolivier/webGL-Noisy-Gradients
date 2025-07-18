@@ -33,35 +33,6 @@
   </style>
 </head>
 <body>
-  <canvas id="glcanvas"></canvas>
-  <canvas id="glcanvasBlurred"></canvas>
-  <!-- 
-    Replace content.png with a screenshot of your website to simulate your content.
-    Make sure it has transparent bits where you want the background to show through.
-  -->
-  <img src="dev/content.png" style="width: 100%; height: auto; display: block; position: relative; z-index: 3;">
-  <script type="module">
-    import main from "./javascript/main.js"
-  </script>
-  <!-- <script type="module">
-    document.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById("glcanvasBlurred");
-    if (!canvas) return;
-    const blendModes = [
-      "multiply", "lighten", "soft-light", "darken"
-    ];
-
-    let idx = 0;
-    canvas.style.mixBlendMode = blendModes[idx];
-    console.log(`blend-mode → ${blendModes[idx]}`);
-
-    setInterval(() => {
-      idx = (idx + 1) % blendModes.length;
-      const mode = blendModes[idx];
-      canvas.style.mixBlendMode = mode;
-      console.log(`blend-mode → ${mode}`);
-    }, 1500);
-  });
-  </script> -->
+  <script type="module" src="./javascript/main.js"></script>
 </body>
 </html>
