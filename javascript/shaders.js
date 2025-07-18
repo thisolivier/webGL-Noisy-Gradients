@@ -1,7 +1,12 @@
 // ----- Shader Sources -----
-export const vertexSource = `MOVED TO SHADERS FILE`;
+// When bundled with `npm run build` the GLSL files are inlined so these
+// imports resolve to the shader source strings. During development the
+// variables will be `undefined` and the shaders will instead be fetched
+// over the network by `loadShaderSource()`.
+import vertexSource from "../shaders/vertex.glsl";
+import fragmentSource from "../shaders/fragment.glsl";
 
-export const fragmentSource = `MOVED TO SHADERS FILE`;
+export { vertexSource, fragmentSource };
 
 export async function loadShaderSource(path) {
   const res = await fetch(path);

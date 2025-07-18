@@ -1,4 +1,6 @@
 import {
+  vertexSource,
+  fragmentSource,
   loadShaderSource
 } from "./shaders.js";
 
@@ -16,10 +18,11 @@ export async function runShaderOnCanvas(canvasName) {
   const gl = canvas.getContext('webgl2');
   if (!gl) { alert('WebGL2 required'); return; }
 
-  // compile and link the program
-  const vertexSource = await loadShaderSource('../shaders/vertex.glsl');
-  const fragmentSource = await loadShaderSource('../shaders/fragment.glsl');
-  const prog = createProgram(gl, vertexSource, fragmentSource);
+  // compile and link the program. When bundled, vertexSource and
+  // fragmentSource are inlined; otherwise fall back to fetching them.
+  const vsSrc = vertexSource || await loadShaderSource('../shaders/vertex.glsl');
+  const fsSrc = fragmentSource || await loadShaderSource('../shaders/fragment.glsl');
+  const prog = createProgram(gl, vsSrc, fsSrc);
   gl.useProgram(prog);
 
   // general attributed and locations
