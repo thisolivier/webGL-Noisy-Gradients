@@ -14,6 +14,7 @@ const glslPlugin = {
 const ctx = await context({
   entryPoints: ['javascript/main.js'],
   bundle: true,
+  globalName: 'SprayGraphics',
   sourcemap: true,
   plugins: [glslPlugin],
   outfile: 'dist/bundle.js'
