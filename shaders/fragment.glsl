@@ -8,10 +8,6 @@ uniform vec2  u_resolution;
 uniform float u_sigma;
 uniform sampler2D u_noise1;
 uniform sampler2D u_noise2;
-// uniforms for masking
-uniform sampler2D u_mask;
-uniform float      u_maskOffset;  // how much to scroll the mask
-uniform float      u_maskStretch; // how much to stretch the mask
 // for gradient configuations
 uniform int    u_numGradients;
 uniform vec2   u_centers[16];
@@ -22,18 +18,13 @@ uniform vec3   u_colours[16];
 out vec4 fragColor;
 
 // CONSTANTS
-const float POINT_SIZE = 1.0;
+const float POINT_SIZE = 2.0;
 const float NOISE_TILE = 512.0;
-const float FADE_START = 2.0;
-const float FADE_END   = 3.5;
+const float FADE_CUTOFF   = 3.5;
 
 void main() {
   vec2 uv     = gl_FragCoord.xy;
   vec2 normUV = uv / u_resolution;
-
-  float v = normUV.y * u_maskStretch + u_maskOffset;
-  vec2 maskUV = vec2(normUV.x, v);
-  float maskVal = texture(u_mask, maskUV).r;
 
   vec2 cell    = floor(uv / POINT_SIZE) * POINT_SIZE + 0.5 * POINT_SIZE;
   vec2 noiseUV = cell / NOISE_TILE;
@@ -41,7 +32,6 @@ void main() {
   float n2 = texture(u_noise2, noiseUV).r;
 
   vec3 col = vec3(1.0);
-  float anyFade = 0.0;
 
   for (int i = 0; i < 16; i++) {
     if (i >= u_numGradients) break;
@@ -50,22 +40,19 @@ void main() {
     float r = u_radii[i];
     vec3 colour = u_colours[i];
 
-    // 1) normalized distance
-    float dNorm = distance(uv, c) / r;
+    // 1) Work out distances between the fragment and gradient center
+    vec2 delta = uv - c;
+    float dist2 = dot(delta, delta); // pixel² space so no quare root needed
+    float fadeCutoff2 = FADE_CUTOFF * FADE_CUTOFF * r * r;
 
-    // 2) gaussian probability
-    float dist2 = dNorm * dNorm * (r * r);
-    float prob  = exp(-dist2 / (2.0 * r * r));
+    if (dist2 >= fadeCutoff2) continue;
 
-    // 3) fade factor: 1.0 inside 2r → 0.0 at 2.5r
-    float fade = 1.0 - smoothstep(FADE_START, FADE_END, dNorm);
-    anyFade = max(anyFade, fade);
+    float prob = exp(-dist2 / (2.0 * r * r));
 
     // 4) dot-layer tests & colour multiply
-    if ((n1 < prob) && (dNorm < FADE_END)) col *= colour;
-    if ((n2 < prob) && (dNorm < FADE_END)) col *= colour;
+    if (n1 < prob) col *= colour;
+    if (n2 < prob) col *= colour;
   }
 
-  col = mix(vec3(1.0), col, maskVal);
   fragColor = vec4(col, 1.0);
 }

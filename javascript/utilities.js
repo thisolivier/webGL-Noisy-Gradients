@@ -1,4 +1,14 @@
 // ----- Utilities -----
+/**
+ * Convert RGB (0–255) to normalised values suitable for GLSL vec3.
+ * @param {number[]} array8bit - An array of numbers (0–255) to convert, e.g. [0, 255, 127]
+ * @returns {number[]} An array of normalised values e.g. [0, 1, 0.498]
+ */
+export function normaliser8Bit(array8bit) {
+  // normalize to 0–1
+  return (array8bit.map(val => (val / 255).toFixed(4)));
+}
+
 function compileShader(gl, type, src) {
   const s = gl.createShader(type);
   gl.shaderSource(s, src);
