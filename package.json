@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "node build.js",
-    "dev": "node dev.js"
+    "dev": "node dev.js",
+    "test": "node test-dev.js"
   },
   "devDependencies": {
     "esbuild": "^0.18.0"

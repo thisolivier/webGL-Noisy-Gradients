@@ -5,7 +5,7 @@ const glslPlugin = {
   name: 'glsl',
   setup(build) {
     build.onLoad({ filter: /\.glsl$/ }, args => ({
-      contents: JSON.stringify(readFileSync(args.path, 'utf8')),
+      contents: readFileSync(args.path, 'utf8'),
       loader: 'text'
     }));
   }

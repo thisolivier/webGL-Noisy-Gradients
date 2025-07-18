@@ -11,6 +11,7 @@ A beautiful, fully configurable, WebGL-powered “spray-paint” gradient system
 3. Run `npm install`
 4. Run `npm run dev` to start the dev server 🏃
 5. Visit `localhost:8080` in your web browser 🎉
+6. Run `npm test` to verify the dev bundle loads correctly
 
 ### Building a Minified Bundle
 
