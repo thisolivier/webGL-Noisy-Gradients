@@ -17,6 +17,9 @@ const ctx = await context({
   globalName: 'SprayGraphics',
   sourcemap: true,
   plugins: [glslPlugin],
+  loader: {
+    '.png': 'dataurl'
+  },
   outfile: 'dist/bundle.js'
 });
 

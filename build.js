@@ -14,8 +14,11 @@ const glslPlugin = {
 build({
   entryPoints: ['javascript/main.js'],
   bundle: true,
-  minify: false,
+  minify: true,
   globalName: 'SprayGraphics',
   plugins: [glslPlugin],
+  loader: {
+    '.png': 'dataurl'
+  },
   outfile: 'dist/bundle.min.js',
 }).catch(() => process.exit(1));
