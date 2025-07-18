@@ -1,6 +1,9 @@
 import vertexSource from "../shaders/vertex.glsl";
 import fragmentSource from "../shaders/fragment.glsl";
 
+import noise4Url from "../images/bn_4.png";
+import noise5Url from "../images/bn_5.png";
+
 import {
   normaliser8Bit,
   createProgram,
@@ -41,8 +44,8 @@ export async function runShaderOnCanvas(canvasName) {
 
   // load both noise textures
   await Promise.all([
-    loadTextureAsync(gl, '../images/bn_4.png', 0),
-    loadTextureAsync(gl, '../images/bn_5.png', 1),
+    loadTextureAsync(gl, noise4Url, 0),
+    loadTextureAsync(gl, noise5Url, 1),
   ]);
   // tell the shader which unit each sampler uses
   gl.uniform1i(uN1, 0);

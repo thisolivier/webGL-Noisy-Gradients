@@ -17,5 +17,8 @@ build({
   minify: false,
   globalName: 'SprayGraphics',
   plugins: [glslPlugin],
+  loader: {
+    '.png': 'dataurl'
+  },
   outfile: 'dist/bundle.min.js',
 }).catch(() => process.exit(1));
