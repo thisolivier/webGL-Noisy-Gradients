@@ -31,14 +31,14 @@ void main() {
   float n1 = texture(u_noise1, noiseUV).r;
   float n2 = texture(u_noise2, noiseUV).r;
 
-  vec3 totalCol = vec3(1.0);
+  vec3 totalCol = vec3(0.0);
 
   for (int i = 0; i < 16; i++) {
     if (i >= u_numGradients) break;
 
     vec2 c = u_centers[i];
     float r = u_radii[i];
-    vec3 colour = u_colours[i];
+    vec3 colour = vec3(1) - u_colours[i];
 
     // 1) Work out distances between the fragment and gradient center
     vec2 delta = uv - c;
@@ -51,10 +51,9 @@ void main() {
 
     // 4) dot-layer tests & colour linear dodge
     //vec3 col = vec3(1.0);   
-    if (n1 < prob) totalCol -= (vec3(1.0) - colour);
-    if (n2 < prob) totalCol *= colour;
-    
+    if (n1 < prob) totalCol += colour;
+    if (n2 < prob) totalCol /= (vec3(1)-colour);
   }
 
-  fragColor = vec4(totalCol, 1.0);
+  fragColor = vec4((vec3(1)-totalCol), 1.0);
 }

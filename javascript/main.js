@@ -27,7 +27,7 @@ export async function setupCanvases() {
         display: 'block',
         zIndex: '2',
         filter: 'blur(1px)',
-        mixBlendMode: 'soft-light',
+        mixBlendMode: 'lighten',
         opacity: '1'
       }
     }
