@@ -12,7 +12,7 @@ export async function setupCanvases() {
         height: '100vh',
         display: 'block',
         zIndex: '1',
-        opacity: '0.60',
+        opacity: '1',
         filter: 'blur(3px)'
       }
     },
@@ -28,7 +28,7 @@ export async function setupCanvases() {
         zIndex: '2',
         filter: 'blur(1px)',
         mixBlendMode: 'soft-light',
-        opacity: '0.75'
+        opacity: '1'
       }
     }
   ];

@@ -31,7 +31,7 @@ void main() {
   float n1 = texture(u_noise1, noiseUV).r;
   float n2 = texture(u_noise2, noiseUV).r;
 
-  vec3 col = vec3(1.0);
+  vec3 totalCol = vec3(1.0);
 
   for (int i = 0; i < 16; i++) {
     if (i >= u_numGradients) break;
@@ -49,10 +49,12 @@ void main() {
 
     float prob = exp(-dist2 / (2.0 * r * r));
 
-    // 4) dot-layer tests & colour multiply
-    if (n1 < prob) col *= colour;
-    if (n2 < prob) col *= colour;
+    // 4) dot-layer tests & colour linear dodge
+    //vec3 col = vec3(1.0);   
+    if (n1 < prob) totalCol -= (vec3(1.0) - colour);
+    if (n2 < prob) totalCol *= colour;
+    
   }
 
-  fragColor = vec4(col, 1.0);
+  fragColor = vec4(totalCol, 1.0);
 }
