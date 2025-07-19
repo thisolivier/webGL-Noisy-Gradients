@@ -18,7 +18,7 @@ uniform vec3   u_colours[16];
 out vec4 fragColor;
 
 // CONSTANTS
-const float POINT_SIZE = 2.0;
+const float POINT_SIZE = 1.0;
 const float NOISE_TILE = 512.0;
 const float FADE_CUTOFF   = 3.5;
 
