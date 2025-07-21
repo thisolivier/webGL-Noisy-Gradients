@@ -66,8 +66,7 @@ gradients:
 - **`index.html`** – minimal page markup and CSS. It loads
   `javascript/main.js` which in turn starts the effect.
 - **`javascript/main.js`** – waits for the document to load and then calls
-  `initBackgroundGradients()`.
-- **`javascript/initBackgroundGradients.js`** – creates the canvas elements used
+  `initBackgroundGradients()`. This creates the canvas elements used
   for rendering (if they do not already exist) and launches the shaders on each
   canvas via `runShaderOnCanvas()`.
 - **`javascript/runShaderOnCanvas.js`** – core WebGL logic. It loads the shader
