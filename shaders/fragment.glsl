@@ -51,8 +51,8 @@ void main() {
 
     // 4) dot-layer tests & colour linear dodge
     //vec3 col = vec3(1.0);   
-    if (n1 < prob) totalCol += colour;
-    if (n2 < prob) totalCol /= (vec3(1)-colour);
+    if (n1 < prob) totalCol = colour;
+    //if (n2 < prob) totalCol /= (vec3(1)-colour);
   }
 
   fragColor = vec4((vec3(1)-totalCol), 1.0);
