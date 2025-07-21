@@ -8,8 +8,23 @@ A beautiful, fully configurable, WebGL-powered “spray-paint” gradient system
 
 1. Clone this repo 👥
 2. Navigate to the repo directory with your shell 🐚
-3. Run `python -m http.server 8080` 🏃
-4. Visit `localhost:8080` in your web browser 🎉
+3. Run `npm install`
+4. Run `npm run dev` to start the dev server 🏃
+5. Visit `localhost:8080` in your web browser 🎉
+6. Run `npm test` to verify the dev bundle loads correctly
+
+### Building a Minified Bundle
+
+If you want to deploy a single minified script including the shader sources run:
+
+```bash
+npm install
+npm run build
+```
+
+The output `dist/bundle.min.js` contains the entire application and can be
+included in your HTML instead of the individual modules. During development,
+`npm run dev` serves an unminified `dist/bundle.js` that rebuilds on changes.
 
 You can then have a look at `gradients.js` and reconfigure the blobs as you like. Currently page height you can scroll is set using the height CSS property in `index.html`.
 

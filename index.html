@@ -8,7 +8,7 @@
     body, html {
       margin: 0;
       padding: 0;
-      min-height: 400vh; /* Force scrolling by setting this */
+      min-height: 700vh; /* Force scrolling by setting this */
       background: white;
     }
     canvas {
@@ -33,6 +33,9 @@
   </style>
 </head>
 <body>
-  <script type="module" src="./javascript/main.js"></script>
+  <!-- Development bundle served by `npm run dev` -->
+  <script src="./dist/bundle.min.js"></script>
+  <!-- Use the line below after running the production build -->
+  <!-- <script src="./dist/bundle.min.js"></script> -->
 </body>
 </html>

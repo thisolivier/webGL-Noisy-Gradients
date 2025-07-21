@@ -1,6 +1,8 @@
-import {
-  loadShaderSource
-} from "./shaders.js";
+import vertexSource from "../shaders/vertex.glsl";
+import fragmentSource from "../shaders/fragment.glsl";
+
+import noise4Url from "../images/bn_4.png";
+import noise5Url from "../images/bn_5.png";
 
 import {
   normaliser8Bit,
@@ -16,10 +18,11 @@ export async function runShaderOnCanvas(canvasName) {
   const gl = canvas.getContext('webgl2');
   if (!gl) { alert('WebGL2 required'); return; }
 
-  // compile and link the program
-  const vertexSource = await loadShaderSource('../shaders/vertex.glsl');
-  const fragmentSource = await loadShaderSource('../shaders/fragment.glsl');
-  const prog = createProgram(gl, vertexSource, fragmentSource);
+  // compile and link the program. When bundled, vertexSource and
+  // fragmentSource are inlined; otherwise fall back to fetching them.
+  const vsSrc = vertexSource;
+  const fsSrc = fragmentSource;
+  const prog = createProgram(gl, vsSrc, fsSrc);
   gl.useProgram(prog);
 
   // general attributed and locations
@@ -41,8 +44,8 @@ export async function runShaderOnCanvas(canvasName) {
 
   // load both noise textures
   await Promise.all([
-    loadTextureAsync(gl, '../images/bn_4.png', 0),
-    loadTextureAsync(gl, '../images/bn_5.png', 1),
+    loadTextureAsync(gl, noise4Url, 0),
+    loadTextureAsync(gl, noise5Url, 1),
   ]);
   // tell the shader which unit each sampler uses
   gl.uniform1i(uN1, 0);
