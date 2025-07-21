@@ -12,7 +12,7 @@ export const gradients = [
     yNorm: 0.15,
     speed: 0.3,
     radius: 0.3,
-    colour: [245, 227, 66], // yellow
+    colour: [255, 224, 20], // yellow
   }, 
   {
     xNorm: 0.01,
