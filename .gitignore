@@ -1,3 +1,4 @@
 ignore.png
 dev/*
 node_modules/
+dist/*

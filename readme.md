@@ -50,8 +50,11 @@ You can change the border effect replacing the mask.png file (white is transpare
   - **`radius`**: circle size (0…1 of canvas width)
   - **`color`**: RGB array
 
-- **Normalization & resize stability**  
+- **Normalization & resize stability**
   All positions and sizes live in normalized space relative to the page width. This makes things stable when the window resizes, and ensure your proportions/design stays pretty on mobile and desktop.
+
+- **Subtle horizontal motion**
+  Each gradient drifts left and right by 10% of its radius. The motion uses a random phase per centre so no two blobs line up perfectly.
 
 - **Excellent looping (coming soon)**  
   - A centre is **removed** once its screen-space Y drifts more than **3× its radius** above the viewport.  

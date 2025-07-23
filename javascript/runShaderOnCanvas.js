@@ -13,6 +13,9 @@ import {
 
 import { getGradientsForWidth } from "./gradients.js";
 
+// random phase for subtle horizontal motion across canvases
+const phases = gradients.map(() => Math.random() * Math.PI * 2);
+
 export async function runShaderOnCanvas(canvasName) {
   const canvas = document.getElementById(canvasName);
   const gl = canvas.getContext('webgl2');
@@ -61,10 +64,8 @@ export async function runShaderOnCanvas(canvasName) {
   function draw() {
     resize();
 
+    const t = performance.now() * 0.001; // seconds
     const scrollY = window.scrollY || window.pageYOffset;
-    const bodyHeight  = document.body.scrollHeight;
-    const viewHeight  = window.innerHeight;
-    const scrollRange = bodyHeight - viewHeight;
 
     // ── DATA-DRIVEN GRADIENTS SETUP ──
     // Pick the gradient set based on current window width
@@ -76,13 +77,12 @@ export async function runShaderOnCanvas(canvasName) {
     // Note: yNorm and radius are also scaled using canvas.width
     // so that all positioning is relative to screen width for consistency.
     // This creates a square-based coordinate system even in tall viewports.
-    for (let g of gradients) {
-      // screen-space X
-      const x = canvas.width * g.xNorm;
+    for (let i = 0; i < gradients.length; i++) {
+      const g = gradients[i];
+      const baseX = canvas.width * g.xNorm;
+      const amp   = g.radius * canvas.width * 0.2;
+      const x = baseX + Math.sin(t + phases[i]) * amp;
       // screen-space Y
-      // `(g.yNorm * canvas.width)` converts our fractional (based on width) vertical pos into pixel size
-      // `+ canvas.height` pushes it to the TOP of the canvas (0,0 is in the bottom left)
-      // `scrollY * g.speed` gives out scrolling parralax behaviour
       const y = (g.yNorm * canvas.width * -1) + canvas.height + scrollY * g.speed;
       centres.push(x, y);
       radii.push(g.radius * canvas.width);
@@ -101,7 +101,12 @@ export async function runShaderOnCanvas(canvasName) {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 
-  window.addEventListener('scroll', draw);
   window.addEventListener('resize', draw);
-  draw();
+
+  function animate() {
+    draw();
+    requestAnimationFrame(animate);
+  }
+
+  animate();
 }
