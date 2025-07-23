@@ -96,6 +96,34 @@ const gradientsMobile = [
     radius: 0.25,
     colour: [171, 254, 255] // light blue
   },
+  {
+    xNorm: 0.3,
+    yNorm: 2.85,
+    speed: 0.3,
+    radius: 0.5,
+    colour: [255, 224, 20], // yellow
+  }, 
+  {
+    xNorm: 0.9,
+    yNorm: 3.7,
+    speed: 0.8,
+    radius: 0.3,
+    colour: [244, 176, 255], // pink
+  }, 
+  {
+    xNorm: 0.2,
+    yNorm: 4.3,
+    speed: 0.4,
+    radius: 0.4,
+    colour: [171, 254, 255] // light blue
+  },  
+  {
+    xNorm: 0.6,
+    yNorm: 5.2,
+    speed: 0.6,
+    radius: 0.6,
+    colour: [255, 249, 77], // yellow
+  }
   // up to 16 entries
 ].map(obj => ({...obj, phase: Math.random() * Math.PI * 2}));
 
