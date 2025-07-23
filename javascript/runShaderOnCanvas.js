@@ -11,7 +11,7 @@ import {
   loadTextureAsync
 } from "./utilities.js";
 
-import { gradientsDesktop } from "./gradients.js";
+import { getGradientsForWidth } from "./gradients.js";
 
 export async function runShaderOnCanvas(canvasName) {
   const canvas = document.getElementById(canvasName);
@@ -66,7 +66,8 @@ export async function runShaderOnCanvas(canvasName) {
 
     // ── DATA-DRIVEN GRADIENTS SETUP ──
     // Pick the gradient set based on current window width
-    const gradients = gradientsDesktop;
+    const gradients = getGradientsForWidth(window.innerWidth);
+    console.log(screen.width)
     // 1) Gather into flat arrays:
     const centres = [];
     const radii   = [];
@@ -78,7 +79,7 @@ export async function runShaderOnCanvas(canvasName) {
       const g = gradients[i];
       const baseX = canvas.width * g.xNorm;
       const amp   = g.radius * canvas.width * 0.2;
-      const x = baseX + Math.sin(t + g.phase[i]) * amp;
+      const x = baseX + Math.sin(t + g.phase) * amp;
       // screen-space Y
       const y = (g.yNorm * canvas.width * -1) + canvas.height + scrollY * g.speed;
       centres.push(x, y);

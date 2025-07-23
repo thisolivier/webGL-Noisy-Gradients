@@ -64,34 +64,34 @@ const gradientsMobile = [
   {
     xNorm: 0.9,
     yNorm: 1,
-    speed: 0.3,
+    speed: 0.8,
     radius: 0.3,
     colour: [244, 176, 255], // pink
   }, 
   {
-    xNorm: 0.8,
-    yNorm: 0.7,
+    xNorm: 0.2,
+    yNorm: 1.5,
     speed: 0.4,
-    radius: 0.15,
+    radius: 0.4,
     colour: [171, 254, 255] // light blue
   },  
   {
-    xNorm: 0.9,
-    yNorm: 1.6,
+    xNorm: 0.6,
+    yNorm: 2.5,
+    speed: 0.6,
+    radius: 0.6,
+    colour: [255, 249, 77], // yellow
+  }, 
+  {
+    xNorm: 0.2,
+    yNorm: 3.6,
     speed: 1,
     radius: 0.3,
     colour: [240, 150, 255], // pink
   },
   {
-    xNorm: 0.4,
-    yNorm: 1.5,
-    speed: 0.6,
-    radius: 0.3,
-    colour: [255, 249, 77], // yellow
-  },   
-  {
     xNorm: 0.8,
-    yNorm: 1.7,
+    yNorm: 2.7,
     speed: 0.4,
     radius: 0.25,
     colour: [171, 254, 255] // light blue
@@ -99,6 +99,7 @@ const gradientsMobile = [
   // up to 16 entries
 ].map(obj => ({...obj, phase: Math.random() * Math.PI * 2}));
 
+console.log(gradientsDesktop)
 
 /**
  * Return the gradient array appropriate for the given width.
