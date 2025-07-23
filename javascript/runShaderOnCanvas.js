@@ -11,7 +11,7 @@ import {
   loadTextureAsync
 } from "./utilities.js";
 
-import { gradients } from "./gradients.js";
+import { getGradientsForWidth } from "./gradients.js";
 
 export async function runShaderOnCanvas(canvasName) {
   const canvas = document.getElementById(canvasName);
@@ -67,6 +67,8 @@ export async function runShaderOnCanvas(canvasName) {
     const scrollRange = bodyHeight - viewHeight;
 
     // ── DATA-DRIVEN GRADIENTS SETUP ──
+    // Pick the gradient set based on current window width
+    const gradients = getGradientsForWidth(window.innerWidth);
     // 1) Gather into flat arrays:
     const centres = [];
     const radii   = [];

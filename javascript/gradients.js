@@ -1,5 +1,6 @@
 // All Colours should be input in HSL format
-export const gradients = [
+// Array of gradient blobs for the desktop breakpoint
+const baseGradients = [
   {
     xNorm: 0.9,
     yNorm: -0.1,
@@ -51,3 +52,20 @@ export const gradients = [
   },
   // up to 16 entries
 ];
+
+// Desktop uses the full set
+export const gradientsDesktop = baseGradients;
+// Tablet keeps the first five entries by default
+export const gradientsTablet = baseGradients.slice(0, 5);
+// Mobile keeps the first three entries by default
+export const gradientsMobile = baseGradients.slice(0, 3);
+
+/**
+ * Return the gradient array appropriate for the given width.
+ * Defaults to `window.innerWidth` when no argument is supplied.
+ */
+export function getGradientsForWidth(width = window.innerWidth) {
+  if (width >= 1001) return gradientsDesktop;
+  if (width >= 651) return gradientsTablet;
+  return gradientsMobile;
+}
