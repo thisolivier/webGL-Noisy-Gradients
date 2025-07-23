@@ -26,11 +26,11 @@ The output `dist/bundle.min.js` contains the entire application and can be
 included in your HTML instead of the individual modules. During development,
 `npm run dev` serves an unminified `dist/bundle.js` that rebuilds on changes.
 
-You can then have a look at `gradients.js` and reconfigure the blobs as you like. Currently page height you can scroll is set using the height CSS property in `index.html`.
+You can then have a look at `gradients.js` and reconfigure the gradient sets for desktop, tablet and mobile breakpoints. Currently page height you can scroll is set using the height CSS property in `index.html`.
 
 ## Configuration
 
-You configure your sprays of colour in `gradients.js`. The vertical positioning, and width of the blob, is proprtional to the page width. I hope to implement looping soon, but for now, on a long page, you'll need to make a long list of gradients.
+You configure your sprays of colour in `gradients.js`. Each breakpoint has its own array of gradients. The vertical positioning, and width of the blob, is proportional to the page width. I hope to implement looping soon, but for now, on a long page, you'll need to make a long list of gradients.
 
 You can change the border effect replacing the mask.png file (white is transparent). Also, playing about with `const float POINT_SIZE` in `fragment.glsl` can be entertaining.
 
@@ -74,10 +74,10 @@ gradients:
   canvas via `runShaderOnCanvas()`.
 - **`javascript/runShaderOnCanvas.js`** – core WebGL logic. It loads the shader
   code from the `shaders/` folder, sets up textures from `images/`, reads the
-  gradient definitions from `gradients.js`, and schedules redraws on scroll or
-  resize.
-- **`javascript/gradients.js`** – holds the array of gradient centres and their
-  colours, radii and movement speeds.
+  gradient definitions from `gradients.js` based on window width, and schedules
+  redraws on scroll or resize.
+- **`javascript/gradients.js`** – holds the gradient arrays for desktop, tablet
+  and mobile breakpoints, along with helper functions.
 - **`javascript/shaders.js`** – small helper for fetching the GLSL source
   strings for the shaders.
 - **`javascript/utilities.js`** – assorted WebGL helpers such as shader

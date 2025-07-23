@@ -11,10 +11,7 @@ import {
   loadTextureAsync
 } from "./utilities.js";
 
-import { gradients } from "./gradients.js";
-
-// random phase for subtle horizontal motion across canvases
-const phases = gradients.map(() => Math.random() * Math.PI * 2);
+import { getGradientsForWidth } from "./gradients.js";
 
 export async function runShaderOnCanvas(canvasName) {
   const canvas = document.getElementById(canvasName);
@@ -68,6 +65,9 @@ export async function runShaderOnCanvas(canvasName) {
     const scrollY = window.scrollY || window.pageYOffset;
 
     // ── DATA-DRIVEN GRADIENTS SETUP ──
+    // Pick the gradient set based on current window width
+    const gradients = getGradientsForWidth(window.innerWidth);
+    console.log(screen.width)
     // 1) Gather into flat arrays:
     const centres = [];
     const radii   = [];
@@ -79,7 +79,7 @@ export async function runShaderOnCanvas(canvasName) {
       const g = gradients[i];
       const baseX = canvas.width * g.xNorm;
       const amp   = g.radius * canvas.width * 0.2;
-      const x = baseX + Math.sin(t + phases[i]) * amp;
+      const x = baseX + Math.sin(t + g.phase) * amp;
       // screen-space Y
       const y = (g.yNorm * canvas.width * -1) + canvas.height + scrollY * g.speed;
       centres.push(x, y);
