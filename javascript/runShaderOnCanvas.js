@@ -78,7 +78,7 @@ export async function runShaderOnCanvas(canvasName) {
     for (let i = 0; i < gradients.length; i++) {
       const g = gradients[i];
       const baseX = canvas.width * g.xNorm;
-      const amp   = g.radius * canvas.width * 0.1;
+      const amp   = g.radius * canvas.width * 0.2;
       const x = baseX + Math.sin(t + phases[i]) * amp;
       // screen-space Y
       const y = (g.yNorm * canvas.width * -1) + canvas.height + scrollY * g.speed;
